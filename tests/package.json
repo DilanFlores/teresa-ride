@@ -1,0 +1,32 @@
+{
+  "name": "teresaride-tests",
+  "version": "1.0.0",
+  "description": "Tests para TeresaRide",
+  "scripts": {
+    "test:backend:trips": "jest --config=jest.backend.config.js backend/trips --forceExit",
+    "test:backend": "jest --config=jest.backend.config.js --forceExit",
+    "test:selenium": "jest --config=jest.selenium.config.js",
+    "test:selenium:review": "jest --config=jest.selenium.config.js frontend/selenium/review",
+    "test:selenium:notifications": "jest --config=jest.selenium.config.js frontend/selenium/notifications/",
+    "test:selenium:trips": "jest --config=jest.selenium.config.js frontend/selenium/trips",
+    "test:all": "npm run test:backend && npm run test:selenium",
+    "test": "npm run test:all",
+    "prepare:db": "ts-node frontend/selenium/prepare-test-db.ts"
+  },
+  "devDependencies": {
+    "@types/chromedriver": "^81.0.5",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.0.0",
+    "@types/selenium-webdriver": "^4.35.4",
+    "chromedriver": "^142.0.2",
+    "jest": "^29.7.0",
+    "selenium-webdriver": "^4.38.0",
+    "ts-jest": "^29.4.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "mysql2": "^3.15.3"
+  }
+}

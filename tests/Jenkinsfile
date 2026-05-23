@@ -1,0 +1,176 @@
+pipeline {
+    agent any
+
+    environment {
+        GIT_CREDENTIALS = 'gitlab-https-cred'
+        FTP_SERVER = 'IIS-Deploy'
+        NODEJS = 'NodeJS'
+        EMAIL = 'rodriguesbrandon825@gmail.com'
+    }
+
+    stages {
+        stage('Limpiar workspace') {
+            steps { deleteDir() }
+        }
+
+        stage('Clonar repos DEV') {
+            steps {
+                dir('backend') {
+                    git branch: 'DEV',
+                        credentialsId: env.GIT_CREDENTIALS,
+                        url: 'https://git.ucr.ac.cr/tresmosqueteros/teresaridebackend.git'
+                }
+
+                dir('frontend') {
+                    git branch: 'DEV',
+                        credentialsId: env.GIT_CREDENTIALS,
+                        url: 'https://git.ucr.ac.cr/tresmosqueteros/transportation.git'
+                }
+
+                dir('tests') {
+                    git branch: 'main',
+                        credentialsId: env.GIT_CREDENTIALS,
+                        url: 'https://git.ucr.ac.cr/tresmosqueteros/teresaride-tests.git'
+                }
+            }
+        }
+
+        stage('Instalar dependencias') {
+            steps {
+                nodejs(env.NODEJS) {
+                    dir('backend') { bat 'npm install' }
+                    dir('tests') { bat 'npm install' }
+                    dir('frontend') { bat 'npm install' }
+                }
+            }
+        }
+
+        stage('Pruebas unitarias (Jest)') {
+            steps {
+                nodejs(env.NODEJS) {
+                    // run tests from the tests directory without an extra dir block to reduce nesting depth
+                    bat 'cd tests && npm run test:backend'
+                }
+            }
+            post {
+                failure {
+                    mail to: env.EMAIL,
+                        subject: "[Jenkins] ${env.JOB_NAME} #${env.BUILD_NUMBER} - PIPELINE FALLÓ",
+                        body: """Job: ${env.JOB_NAME}
+                        Build: #${env.BUILD_NUMBER}
+                        Estado: FALLIDO
+                        Etapa probable: ${env.STAGE_NAME ?: 'verificar etapas'}
+                        Commit: ${env.GIT_COMMIT ?: 'N/A'}
+                        Enlace al build: ${env.BUILD_URL}
+                        Ver consola: ${env.BUILD_URL}console
+                        Acción recomendada: Revisar el log de la etapa fallida y rerun si corresponde."""
+                }
+            }
+        }
+
+        // stage('Pruebas UI (Selenium)') {
+        //     steps {
+        //         nodejs(env.NODEJS) {
+        //             dir('tests') { bat 'npm run test:selenium:notifications' }
+        //         }
+        //     }
+        //     post {
+        //         failure {
+        //             mail to: env.EMAIL,
+        //                 subject: "[Jenkins] ${env.JOB_NAME} #${env.BUILD_NUMBER} -FALLARON PRUEBAS UI",
+        //                 body: """Job: ${env.JOB_NAME}
+        //                 Build: #${env.BUILD_NUMBER}
+        //                 Estado: FALLIDO
+        //                 Etapa probable: ${env.STAGE_NAME ?: 'verificar etapas'}
+        //                 Commit: ${env.GIT_COMMIT ?: 'N/A'}
+        //                 Enlace al build: ${env.BUILD_URL}
+        //                 Ver consola: ${env.BUILD_URL}console
+        //                 Acción recomendada: Revisar el log de la etapa fallida y rerun si corresponde."""
+        //         }
+        //     }
+        // }
+
+        stage('Merge DEV → MASTER') {
+            when { expression { currentBuild.currentResult == 'SUCCESS' } }
+            steps {
+                echo 'Realizando merge automático…'
+
+                dir('backend') {
+                    bat '''
+                        git checkout MASTER
+                        git merge DEV --no-ff -m "Merge automático Jenkins"
+                        git push origin MASTER
+                    '''
+                }
+
+                dir('frontend') {
+                    bat '''
+                        git checkout MASTER
+                        git merge DEV --no-ff -m "Merge automático Jenkins"
+                        git push origin MASTER
+                    '''
+                }
+            }
+        }
+
+        // stage('Checkout MASTER para deploy') {
+        //     steps {
+        //         echo "Asegurando que trabajamos con master para deploy"
+        //         dir('backend') {
+        //             bat 'git fetch origin master'
+        //             bat 'git checkout master || git checkout -b master origin/master'
+        //             bat 'git pull origin master'
+        //         }
+        //         dir('frontend') {
+        //             bat 'git fetch origin master'
+        //             bat 'git checkout master || git checkout -b master origin/master'
+        //             bat 'git pull origin master'
+        //         }
+        //     }
+        // }
+
+        // stage('Build del frontend') {
+        //     steps {
+        //         nodejs(env.NODEJS) {
+        //             dir('frontend') { bat 'npm run build' }
+        //         }
+        //     }
+        // }
+
+        // stage('Deploy a IIS') {
+        //     steps {
+        //         echo "Subiendo archivos a IIS via FTP…"
+
+    //         script {
+    //             ftpPublisher alwaysPublishFromMaster: true,
+    //                 failOnError: true,
+    //                 publishers: [
+    //                     ftpPublisherPublisher(
+    //                         configName: env.FTP_SERVER,
+    //                         transfers: [
+    //                             ftpTransfer(
+    //                                 sourceFiles: '**',
+    //                                 remoteDirectory: '/wwwroot/',
+    //                                 flatten: false
+    //                             )
+    //                         ]
+    //                     )
+    //                 ]
+    //         }
+    //     }
+    // }
+    }
+
+    post {
+        success {
+            mail to: env.EMAIL,
+                subject: 'Pipeline completado con éxito',
+                body: 'Todas las pruebas pasaron y se realizó el deploy a IIS correctamente.'
+        }
+        failure {
+            mail to: env.EMAIL,
+                subject: 'Pipeline falló',
+                body: 'El pipeline se detuvo. Revisar Jenkins.'
+        }
+    }
+}

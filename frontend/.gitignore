@@ -1,0 +1,92 @@
+# ======================================================
+# 📦 Node & Dependencies
+# ======================================================
+node_modules/
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ======================================================
+# 🏗️ Build Outputs
+# ======================================================
+dist/
+build/
+.next/
+out/
+coverage/
+.nyc_output/
+
+# Vite cache
+.vite/
+.cache/
+
+# ======================================================
+# 🧩 TypeScript
+# ======================================================
+*.tsbuildinfo
+*.d.ts.map
+
+# ======================================================
+# ⚙️ Environment Variables
+# ======================================================
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env.*.local
+
+# ======================================================
+# 🧰 Editor Configurations
+# ======================================================
+.vscode/
+.idea/
+.history/
+*.swp
+*.swo
+
+# ======================================================
+# 💻 OS-specific files
+# ======================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ======================================================
+# 📘 Lock Files (usa solo uno)
+# ======================================================
+# Comitea el lock de la herramienta que usas.
+# Si usas npm, NO ignores package-lock.json:
+# package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ======================================================
+# 🧪 Testing & Temp
+# ======================================================
+# (Opcional) Si usas tests, NO ignores estos archivos.
+# Elimina las siguientes líneas si quieres versionar tests.
+# jest.config.js
+# __tests__/
+# *.spec.ts
+# *.test.ts
+*.tmp
+*.temp
+
+# Playwright/Cypress (si aplica)
+test-results/
+playwright-report/
+cypress/videos/
+cypress/screenshots/
+
+# ======================================================
+# 🧱 Local development files
+# ======================================================
+*.local
+*.bak
+
+# Paquetes generados por npm pack
+*.tgz
