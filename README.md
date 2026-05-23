@@ -102,3 +102,4 @@ The project was developed collaboratively as part of a Systems Analysis course, 
 # 📷 Screenshots
 
 ![Home](./assets/home.png)
+![Dashboard](./assets/admindashboard.png)
